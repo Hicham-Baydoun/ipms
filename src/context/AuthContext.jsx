@@ -262,6 +262,9 @@ export const AuthProvider = ({ children }) => {
         if (parsedInput.requestedRole === 'Staff') {
           return resolvedRole.role === 'Staff' || resolvedRole.role === 'Supervisor';
         }
+        if (parsedInput.requestedRole === 'Supervisor') {
+          return resolvedRole.role === 'Supervisor';
+        }
         return resolvedRole.role === parsedInput.requestedRole;
       })();
 

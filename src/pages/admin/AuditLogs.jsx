@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Filter } from 'lucide-react';
+import { Filter, X } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 import DataTable from '../../components/ui/DataTable';
 import { formatDateTime, toDate } from '../../utils/formatters';
@@ -8,6 +8,13 @@ const AuditLogs = () => {
   const { auditLogs } = useData();
   const [actionFilter, setActionFilter] = useState('');
   const [dateRange, setDateRange] = useState({ from: '', to: '' });
+
+  const hasActiveFilters = actionFilter || dateRange.from || dateRange.to;
+
+  const clearFilters = () => {
+    setActionFilter('');
+    setDateRange({ from: '', to: '' });
+  };
 
   const actionTypes = [
     { value: '', label: 'All Actions' },
@@ -116,6 +123,16 @@ const AuditLogs = () => {
             className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
         </div>
+
+        {hasActiveFilters && (
+          <button
+            onClick={clearFilters}
+            className="flex items-center gap-1.5 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors ml-auto"
+          >
+            <X className="w-4 h-4" />
+            Clear Filters
+          </button>
+        )}
       </div>
 
       {/* Audit Logs Table */}

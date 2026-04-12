@@ -21,26 +21,34 @@ const LoginPage = () => {
   }, [location.state, selectedRole]);
 
   const roles = [
-    { 
-      id: 'Admin', 
-      label: 'Administrator', 
-      icon: UserCog, 
+    {
+      id: 'Admin',
+      label: 'Administrator',
+      icon: UserCog,
       description: 'Full system access',
       color: 'bg-purple-100 border-purple-200 text-purple-700',
       selectedColor: 'bg-purple-600 border-purple-600 text-white'
     },
-    { 
-      id: 'Staff', 
-      label: 'Staff Member', 
-      icon: Users, 
+    {
+      id: 'Supervisor',
+      label: 'Supervisor',
+      icon: UserCog,
+      description: 'Senior staff & oversight',
+      color: 'bg-amber-100 border-amber-200 text-amber-700',
+      selectedColor: 'bg-amber-500 border-amber-500 text-white'
+    },
+    {
+      id: 'Staff',
+      label: 'Staff Member',
+      icon: Users,
       description: 'Check-in/out & monitoring',
       color: 'bg-blue-100 border-blue-200 text-blue-700',
       selectedColor: 'bg-blue-600 border-blue-600 text-white'
     },
-    { 
-      id: 'Guardian', 
-      label: 'Guardian', 
-      icon: User, 
+    {
+      id: 'Guardian',
+      label: 'Guardian',
+      icon: User,
       description: 'View children & pickup',
       color: 'bg-emerald-100 border-emerald-200 text-emerald-700',
       selectedColor: 'bg-emerald-600 border-emerald-600 text-white'
