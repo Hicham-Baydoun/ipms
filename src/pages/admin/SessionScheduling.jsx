@@ -49,8 +49,31 @@ const SessionScheduling = () => {
     const startTime = mergeDateAndTime(sessionDate, formData.get('startTime'));
     const endTime = mergeDateAndTime(sessionDate, formData.get('endTime'));
 
+    if (startTime < new Date()) {
+      error('Session start time cannot be in the past.');
+      return;
+    }
+
+    if (endTime <= startTime) {
+      error('End time must be after start time.');
+      return;
+    }
+
+    const zoneId = formData.get('zoneId');
+    const hasOverlap = sessions.some(s => {
+      if (s.zoneId !== zoneId) return false;
+      const sStart = new Date(s.startTime);
+      const sEnd = new Date(s.endTime);
+      return startTime < sEnd && endTime > sStart;
+    });
+
+    if (hasOverlap) {
+      error('This zone already has a session scheduled during that time slot.');
+      return;
+    }
+
     const newSession = {
-      zoneId: formData.get('zoneId'),
+      zoneId,
       startTime,
       endTime,
       staffId: formData.get('staffId'),

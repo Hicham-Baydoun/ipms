@@ -11,7 +11,7 @@ import React, {
 import { useAuth } from './AuthContext';
 import { isFirebaseConfigured } from '../firebase/config';
 import { subscribeToZones, addZone, updateZone, deactivateZone, reactivateZone } from '../services/zoneService';
-import { subscribeToNotifications } from '../services/notificationService';
+import { subscribeToNotifications, createNotification, saveNotification } from '../services/notificationService';
 import { subscribeToUsers, addUser, updateUser } from '../services/userService';
 import { subscribeToStaff, addStaff, updateStaff, removeStaff } from '../services/staffService';
 import { subscribeToSessions, addSession, updateSession } from '../services/sessionService';
@@ -341,6 +341,20 @@ export const DataProvider = ({ children }) => {
             reassignIgnoreRef.current[action.payload.id] = Date.now() + 5000;
             await performReassign(action.payload.id, existingUser.assignedZoneId, newZoneId, actorUid);
             actionResult = action.payload.id;
+
+            const guardianUid = existingUser.guardianUid || existingUser.guardianId;
+            if (guardianUid) {
+              const oldZone = stateRef.current.zones.find(z => z.id === existingUser.assignedZoneId);
+              const newZone = stateRef.current.zones.find(z => z.id === newZoneId);
+              const notif = createNotification(
+                guardianUid,
+                'transfer',
+                'Child Zone Transfer',
+                `${existingUser.name} has been moved from "${oldZone?.zoneName || 'previous zone'}" to "${newZone?.zoneName || 'new zone'}".`
+              );
+              baseDispatch({ type: 'ADD_NOTIFICATION', payload: notif });
+              await saveNotification(notif);
+            }
           } else {
             await updateUser(action.payload.id, action.payload);
             actionResult = action.payload.id;
@@ -359,12 +373,25 @@ export const DataProvider = ({ children }) => {
             actionResult = action.payload.userId;
           }
           break;
-        case 'CHECK_OUT_USER':
+        case 'CHECK_OUT_USER': {
           if (!shouldIgnoreReassignFollowUp(action.payload.userId)) {
             await performCheckOut(action.payload.userId, action.payload.zoneId, actorUid, action.payload.pickupPerson || null);
             actionResult = action.payload.userId;
+
+            const checkedOutUser = stateRef.current.users.find(u => u.id === action.payload.userId);
+            const guardianUid = checkedOutUser?.guardianUid || checkedOutUser?.guardianId;
+            if (checkedOutUser && guardianUid) {
+              const pickupPerson = action.payload.pickupPerson;
+              const msg = pickupPerson
+                ? `${checkedOutUser.name} has been checked out and picked up by ${pickupPerson.name} (${pickupPerson.relation}).`
+                : `${checkedOutUser.name} has been checked out of the facility.`;
+              const notif = createNotification(guardianUid, 'checkout', 'Child Checked Out', msg);
+              baseDispatch({ type: 'ADD_NOTIFICATION', payload: notif });
+              await saveNotification(notif);
+            }
           }
           break;
+        }
 
         case 'UPDATE_GUARDIAN_PICKUP':
           await updatePickupList(action.payload.guardianId, action.payload.authorizedPickup);

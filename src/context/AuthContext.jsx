@@ -125,38 +125,14 @@ export const AuthProvider = ({ children }) => {
       };
     };
 
-    const staffByUidQuery = query(collection(db, 'staff'), where('uid', '==', firebaseUser.uid), limit(1));
-    const staffByUidSnapshot = await getDocs(staffByUidQuery);
-    if (!staffByUidSnapshot.empty) {
-      return await buildStaffRoleResult(staffByUidSnapshot.docs[0]);
-    }
-
-    // Temporary safety fallback for misconfigured Firestore docs.
-    // Canonical setup should still store the real Auth UID in staff.uid.
-    if (firebaseUser.email) {
-      const staffByEmailQuery = query(collection(db, 'staff'), where('email', '==', firebaseUser.email), limit(1));
-      const staffByEmailSnapshot = await getDocs(staffByEmailQuery);
-      if (!staffByEmailSnapshot.empty) {
-        console.warn('Staff uid mismatch detected. Matched staff profile by email.');
-        return await buildStaffRoleResult(staffByEmailSnapshot.docs[0]);
-      }
-    }
-
+    // Check guardian first — guardians cannot read the staff collection
     const guardianDoc = await getDoc(doc(db, 'guardians', firebaseUser.uid));
     if (guardianDoc.exists()) {
       const guardianData = guardianDoc.data();
-      let { username } = guardianData;
-
-      if (!username) {
-        const allGuardians = await getDocs(collection(db, 'guardians'));
-        const existingUsernames = allGuardians.docs
-          .filter((d) => d.id !== guardianDoc.id)
-          .map((d) => d.data().username)
-          .filter(Boolean);
-        username = generateUsername(guardianData.name, existingUsernames);
+      const username = guardianData.username || generateUsername(guardianData.name, []);
+      if (!guardianData.username) {
         await updateDoc(doc(db, 'guardians', guardianDoc.id), { username });
       }
-
       return {
         role: 'Guardian',
         profile: {
@@ -166,6 +142,22 @@ export const AuthProvider = ({ children }) => {
           uid: firebaseUser.uid
         }
       };
+    }
+
+    // Not a guardian — safe to query staff collection
+    const staffByUidQuery = query(collection(db, 'staff'), where('uid', '==', firebaseUser.uid), limit(1));
+    const staffByUidSnapshot = await getDocs(staffByUidQuery);
+    if (!staffByUidSnapshot.empty) {
+      return await buildStaffRoleResult(staffByUidSnapshot.docs[0]);
+    }
+
+    if (firebaseUser.email) {
+      const staffByEmailQuery = query(collection(db, 'staff'), where('email', '==', firebaseUser.email), limit(1));
+      const staffByEmailSnapshot = await getDocs(staffByEmailQuery);
+      if (!staffByEmailSnapshot.empty) {
+        console.warn('Staff uid mismatch detected. Matched staff profile by email.');
+        return await buildStaffRoleResult(staffByEmailSnapshot.docs[0]);
+      }
     }
 
     return null;

@@ -1,4 +1,4 @@
-import { collection, doc, increment, serverTimestamp, writeBatch } from 'firebase/firestore';
+import { Timestamp, collection, doc, increment, serverTimestamp, writeBatch } from 'firebase/firestore';
 import { db, isFirebaseConfigured } from '../firebase/config';
 import { logAudit } from './auditService';
 
@@ -29,11 +29,12 @@ export const performCheckIn = async (userId, zoneId, braceletId, staffUid) => {
     staffId: staffUid
   });
 
+  const expiryDate = Timestamp.fromDate(new Date(Date.now() + 4 * 60 * 60 * 1000));
   const braceletRef = doc(collection(db, 'bracelets'));
   batch.set(braceletRef, {
     userId,
     issueDate: serverTimestamp(),
-    expiryDate: null,
+    expiryDate,
     isActive: true
   });
 

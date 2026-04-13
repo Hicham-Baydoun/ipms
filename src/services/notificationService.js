@@ -19,7 +19,7 @@ export const createNotification = (guardianId, type, title, message) => ({
   timestamp: new Date().toISOString()
 });
 
-const saveNotification = async (notification) => {
+export const saveNotification = async (notification) => {
   if (!isFirebaseConfigured() || !db) return;
   await addDoc(collection(db, 'notifications'), {
     guardianId: notification.guardianId,

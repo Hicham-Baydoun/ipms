@@ -40,6 +40,7 @@ import ZoneReassignment from './pages/staff/ZoneReassignment';
 import GuardianDashboard from './pages/guardian/GuardianDashboard';
 import PickupAuthorization from './pages/guardian/PickupAuthorization';
 import Notifications from './pages/guardian/Notifications';
+import VisitHistory from './pages/guardian/VisitHistory';
 
 // Styles
 import './styles/animations.css';
@@ -84,6 +85,9 @@ function App() {
                   <Route path="zones" element={<ZoneMonitor />} />
                   <Route path="users" element={<UserLookup />} />
                   <Route path="reassign" element={<ZoneReassignment />} />
+                  {/* Supervisor-only pages */}
+                  <Route path="reports" element={<Reports />} />
+                  <Route path="audit-logs" element={<AuditLogs />} />
                 </Route>
 
                 {/* Guardian Routes */}
@@ -96,6 +100,7 @@ function App() {
                   <Route path="dashboard" element={<GuardianDashboard />} />
                   <Route path="pickup" element={<PickupAuthorization />} />
                   <Route path="notifications" element={<Notifications />} />
+                  <Route path="history" element={<VisitHistory />} />
                 </Route>
 
                 {/* Default Redirect */}

@@ -1,5 +1,5 @@
 import { createUserWithEmailAndPassword, signOut } from 'firebase/auth';
-import { addDoc, collection, getDocs } from 'firebase/firestore';
+import { collection, doc, getDocs, setDoc } from 'firebase/firestore';
 import { db, isFirebaseConfigured, secondaryAuth } from '../firebase/config';
 import { cleanUndefined, toTimestampOrNull } from './firebaseMappers';
 import { logAudit } from './auditService';
@@ -37,9 +37,9 @@ export const createStaffAccount = async (staffData, performedBy) => {
   const uid = credential.user.uid;
 
   try {
-    const docRef = await addDoc(collection(db, 'staff'), normalizeStaffForCreate(staffData, uid, username));
-    await logAudit('STAFF_ADDED', performedBy, docRef.id, 'staff', `Added ${staffData.name} as ${staffData.role}`);
-    return docRef.id;
+    await setDoc(doc(db, 'staff', uid), normalizeStaffForCreate(staffData, uid, username));
+    await logAudit('STAFF_ADDED', performedBy, uid, 'staff', `Added ${staffData.name} as ${staffData.role}`);
+    return uid;
   } finally {
     await signOut(secondaryAuth);
   }

@@ -142,9 +142,7 @@ const GuardianRegisterPage = () => {
       const guardianEmail = sanitizeInput(guardianData.email).toLowerCase();
       const guardianPhone = sanitizeInput(guardianData.phone);
 
-      const existingGuardiansSnapshot = await getDocs(collection(db, 'guardians'));
-      const existingUsernames = existingGuardiansSnapshot.docs.map((d) => d.data().username).filter(Boolean);
-      const username = generateUsername(guardianName, existingUsernames);
+      const username = generateUsername(guardianName, []);
 
       const credential = await createUserWithEmailAndPassword(auth, guardianEmail, guardianData.password);
       const guardianUid = credential.user.uid;
@@ -157,6 +155,9 @@ const GuardianRegisterPage = () => {
         childrenIds: [],
         authorizedPickup: []
       });
+
+      // Register email in public index so password reset can verify guardian accounts
+      await setDoc(doc(db, 'guardianEmails', guardianEmail), { exists: true });
 
       const childIds = [];
       for (const child of children) {
@@ -433,7 +434,6 @@ const GuardianRegisterPage = () => {
                         >
                           <option value="Male">Male</option>
                           <option value="Female">Female</option>
-                          <option value="Other">Other</option>
                         </select>
                       </div>
 

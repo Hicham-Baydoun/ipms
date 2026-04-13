@@ -1,61 +1,54 @@
 import React, { useState, useMemo } from 'react';
-import { Search, UserPlus, Check, ChevronRight, ChevronLeft, AlertTriangle, Users, X } from 'lucide-react';
+import { Search, Check, ChevronLeft, ChevronRight, AlertTriangle, X, User } from 'lucide-react';
 import { useAppData } from '../../context/DataContext';
 import { useToast } from '../../context/ToastContext';
 import { calculateAge } from '../../utils/ageCalculator';
 import { getEligibleZones } from '../../utils/zoneEligibility';
 import { generateBraceletId } from '../../utils/braceletGenerator';
 import { sanitizeInput } from '../../utils/sanitize';
-import { validateName, validatePhone } from '../../utils/validators';
-import StatusDot from '../../components/ui/StatusDot';
+import { validateName } from '../../utils/validators';
 
 const CheckIn = () => {
   const { users, zones, guardians, dispatch, emergencyMode } = useAppData();
   const { success, error } = useToast();
 
-  const [activeTab, setActiveTab] = useState('checkin');
   const [step, setStep] = useState(1);
-  const [searchMode, setSearchMode] = useState('child'); // 'child' | 'guardian' | 'new'
-
-  // Child search
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchMode, setSearchMode] = useState('guardian'); // 'guardian' | 'returning' | 'new'
   // Guardian search
   const [guardianSearch, setGuardianSearch] = useState('');
   const [selectedGuardian, setSelectedGuardian] = useState(null);
-  // Selected children to check in
+  // Returning adult search
+  const [returningSearch, setReturningSearch] = useState('');
+  // Selected children/adults to check in
   const [selectedChildren, setSelectedChildren] = useState([]);
   // Zone + bracelets
   const [selectedZone, setSelectedZone] = useState(null);
   const [braceletIds, setBraceletIds] = useState({});
   // New user form
   const [newUserData, setNewUserData] = useState({
-    name: '', dateOfBirth: '', gender: 'Male',
-    guardianName: '', guardianContact: '', medicalInfo: '', allergies: ''
+    name: '', dateOfBirth: '', gender: 'Male', medicalInfo: '', allergies: ''
   });
   const [errors, setErrors] = useState({});
 
   /* ── derived data ── */
 
-  const checkedInUsers = useMemo(() => users.filter(u => u.isCheckedIn), [users]);
-
-  const filteredChildren = useMemo(() => {
-    if (!searchTerm) return [];
-    return users
-      .filter(u => u.name?.toLowerCase().includes(searchTerm.toLowerCase()) && !u.isCheckedIn)
-      .slice(0, 8);
-  }, [users, searchTerm]);
-
   const filteredGuardians = useMemo(() => {
-    if (!guardianSearch || selectedGuardian) return [];
-    return guardians
-      .filter(g => g.name?.toLowerCase().includes(guardianSearch.toLowerCase()))
-      .slice(0, 6);
+    if (selectedGuardian) return [];
+    if (!guardianSearch) return guardians;
+    return guardians.filter(g => g.name?.toLowerCase().includes(guardianSearch.toLowerCase()));
   }, [guardians, guardianSearch, selectedGuardian]);
 
   const guardianChildren = useMemo(() => {
     if (!selectedGuardian?.childrenIds?.length) return [];
     return users.filter(u => selectedGuardian.childrenIds.includes(u.id) && !u.isCheckedIn);
   }, [selectedGuardian, users]);
+
+  // Returning adults: no guardian, not currently checked in
+  const returningAdults = useMemo(() => {
+    const adults = users.filter(u => !u.guardianUid && !u.guardianId && !u.isCheckedIn);
+    if (!returningSearch) return adults;
+    return adults.filter(u => u.name?.toLowerCase().includes(returningSearch.toLowerCase()));
+  }, [users, returningSearch]);
 
   const eligibleZones = useMemo(() => {
     if (!selectedChildren.length && searchMode !== 'new') return [];
@@ -65,23 +58,16 @@ const CheckIn = () => {
 
   /* ── helpers ── */
 
-  const getGuardianForUser = (user) => {
-    const gid = user.guardianId || user.guardianUid;
-    return gid ? guardians.find(g => g.id === gid) : null;
-  };
-
-  const getUserZone = (zoneId) => zones.find(z => z.id === zoneId);
-
   const resetFlow = () => {
     setStep(1);
-    setSearchTerm('');
     setGuardianSearch('');
     setSelectedGuardian(null);
+    setReturningSearch('');
     setSelectedChildren([]);
     setSelectedZone(null);
     setBraceletIds({});
     setErrors({});
-    setNewUserData({ name: '', dateOfBirth: '', gender: 'Male', guardianName: '', guardianContact: '', medicalInfo: '', allergies: '' });
+    setNewUserData({ name: '', dateOfBirth: '', gender: 'Male', medicalInfo: '', allergies: '' });
   };
 
   /* ── guardian child selection ── */
@@ -107,10 +93,6 @@ const CheckIn = () => {
   };
 
   /* ── step handlers ── */
-
-  const handleSelectSingleChild = (user) => {
-    proceedWithSelection([user]);
-  };
 
   const handleSelectZone = (zone) => {
     setSelectedZone(zone);
@@ -148,13 +130,21 @@ const CheckIn = () => {
     if (errors[name]) setErrors(prev => ({ ...prev, [name]: null }));
   };
 
+  const newVisitorAge = useMemo(
+    () => (newUserData.dateOfBirth ? calculateAge(newUserData.dateOfBirth) : null),
+    [newUserData.dateOfBirth]
+  );
+
+  const newVisitorIsAdult = newVisitorAge !== null && newVisitorAge >= 18;
+
   const validateNewUser = () => {
     const newErrors = {};
     const nameError = validateName(newUserData.name);
     if (nameError) newErrors.name = nameError;
     if (!newUserData.dateOfBirth) newErrors.dateOfBirth = 'Date of birth is required';
-    const phoneError = validatePhone(newUserData.guardianContact);
-    if (phoneError) newErrors.guardianContact = phoneError;
+    if (newUserData.dateOfBirth && !newVisitorIsAdult) {
+      newErrors.dateOfBirth = 'Only adults (18+) can be checked in without a guardian account.';
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -166,8 +156,6 @@ const CheckIn = () => {
       fullName: sanitizeInput(newUserData.name),
       dateOfBirth: newUserData.dateOfBirth,
       gender: newUserData.gender,
-      guardianName: sanitizeInput(newUserData.guardianName || ''),
-      guardianContact: sanitizeInput(newUserData.guardianContact || ''),
       guardianId: null,
       isCheckedIn: false,
       assignedZoneId: null,
@@ -184,56 +172,6 @@ const CheckIn = () => {
     proceedWithSelection([{ id: createdId, ...payload }]);
   };
 
-  /* ── render: Currently In tab ── */
-
-  const renderCurrentlyIn = () => (
-    <div className="space-y-3 animate-fade-slide-up">
-      {checkedInUsers.length === 0 ? (
-        <div className="text-center py-16 text-gray-400">
-          <Users className="w-12 h-12 mx-auto mb-3 opacity-40" />
-          <p className="font-medium">No users currently checked in</p>
-        </div>
-      ) : (
-        checkedInUsers.map(user => {
-          const guardian = getGuardianForUser(user);
-          const zone = getUserZone(user.assignedZoneId);
-          return (
-            <div key={user.id} className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm">
-              <div className="flex items-start gap-3">
-                <StatusDot status="checkedIn" size="lg" />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold text-gray-900">{user.name}</span>
-                    <span className="text-sm text-gray-400">• {calculateAge(user.dateOfBirth)} yrs • {user.gender}</span>
-                  </div>
-                  <p className="text-sm text-gray-500 mt-0.5">
-                    Zone: <span className="text-indigo-600 font-medium">{zone?.zoneName || '—'}</span>
-                    {' · '}Bracelet: <span className="font-mono text-gray-700">{user.braceletId}</span>
-                  </p>
-                  {guardian ? (
-                    <p className="text-sm text-gray-500 mt-0.5">
-                      Guardian: <span className="text-gray-700 font-medium">{guardian.name}</span>
-                      {' · '}{guardian.phone}
-                    </p>
-                  ) : user.guardianName ? (
-                    <p className="text-sm text-gray-500 mt-0.5">
-                      Guardian: <span className="text-gray-700 font-medium">{user.guardianName}</span>
-                      {user.guardianContact ? ` · ${user.guardianContact}` : ''}
-                    </p>
-                  ) : null}
-                  {user.medicalInfo && (
-                    <p className="text-xs text-amber-700 bg-amber-50 rounded px-2 py-0.5 mt-1 inline-block">
-                      ⚠ {user.medicalInfo}
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
-          );
-        })
-      )}
-    </div>
-  );
 
   /* ── render: step 1 ── */
 
@@ -242,17 +180,17 @@ const CheckIn = () => {
       {/* Mode selector */}
       <div className="flex gap-2">
         {[
-          { id: 'child', label: 'Child Name' },
           { id: 'guardian', label: 'By Guardian' },
-          { id: 'new', label: 'New Child' }
+          { id: 'returning', label: 'Returning Adult' },
+          { id: 'new', label: 'New Adult' }
         ].map(m => (
           <button
             key={m.id}
             onClick={() => {
               setSearchMode(m.id);
-              setSearchTerm('');
               setGuardianSearch('');
               setSelectedGuardian(null);
+              setReturningSearch('');
               setSelectedChildren([]);
             }}
             className={`flex-1 py-2.5 rounded-xl text-sm font-medium border-2 transition-all ${
@@ -265,43 +203,6 @@ const CheckIn = () => {
           </button>
         ))}
       </div>
-
-      {/* Search child by name */}
-      {searchMode === 'child' && (
-        <div>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              placeholder="Search by child name..."
-              autoFocus
-            />
-          </div>
-          {filteredChildren.length > 0 && (
-            <div className="mt-2 bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-              {filteredChildren.map(user => (
-                <button
-                  key={user.id}
-                  onClick={() => handleSelectSingleChild(user)}
-                  className="w-full px-4 py-3 text-left hover:bg-gray-50 flex items-center justify-between border-b border-gray-100 last:border-0 transition-colors"
-                >
-                  <div>
-                    <p className="font-medium text-gray-900">{user.name}</p>
-                    <p className="text-sm text-gray-500">Age: {calculateAge(user.dateOfBirth)} · {user.gender}</p>
-                  </div>
-                  <ChevronRight className="w-5 h-5 text-gray-400" />
-                </button>
-              ))}
-            </div>
-          )}
-          {searchTerm && filteredChildren.length === 0 && (
-            <p className="text-center text-sm text-gray-500 mt-6">No unchecked-in users found</p>
-          )}
-        </div>
-      )}
 
       {/* Search by guardian */}
       {searchMode === 'guardian' && (
@@ -326,9 +227,14 @@ const CheckIn = () => {
             )}
           </div>
 
-          {/* Guardian search results */}
+          {/* Guardian list */}
+          {filteredGuardians.length === 0 && !selectedGuardian && (
+            <div className="text-center py-6 text-gray-400 bg-gray-50 rounded-xl">
+              <p className="font-medium">{guardianSearch ? 'No guardians match your search' : 'No guardian accounts registered yet'}</p>
+            </div>
+          )}
           {filteredGuardians.length > 0 && (
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden max-h-72 overflow-y-auto">
               {filteredGuardians.map(g => (
                 <button
                   key={g.id}
@@ -416,12 +322,77 @@ const CheckIn = () => {
         </div>
       )}
 
-      {/* New child form */}
+      {/* Returning adult search */}
+      {searchMode === 'returning' && (
+        <div className="space-y-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <input
+              type="text"
+              value={returningSearch}
+              onChange={e => setReturningSearch(e.target.value)}
+              className="w-full pl-10 pr-10 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              placeholder="Search by name..."
+              autoFocus
+            />
+            {returningSearch && (
+              <button onClick={() => setReturningSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2">
+                <X className="w-4 h-4 text-gray-400 hover:text-gray-600" />
+              </button>
+            )}
+          </div>
+
+          {returningAdults.length === 0 ? (
+            <div className="text-center py-8 bg-gray-50 rounded-xl text-gray-400">
+              <p className="font-medium">
+                {returningSearch ? 'No adults match your search' : 'No returning adults on record'}
+              </p>
+              <p className="text-sm mt-1">Use "New Adult" to register a first-time visitor</p>
+            </div>
+          ) : (
+            <div className="space-y-2 max-h-72 overflow-y-auto">
+              {returningAdults.map(adult => (
+                <button
+                  key={adult.id}
+                  onClick={() => proceedWithSelection([adult])}
+                  className="w-full flex items-center gap-3 p-4 bg-gray-50 hover:bg-indigo-50 rounded-xl text-left transition-colors border border-transparent hover:border-indigo-200"
+                >
+                  <div className="w-9 h-9 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <User className="w-4 h-4 text-purple-600" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-gray-900">{adult.name}</p>
+                    <p className="text-sm text-gray-500">
+                      {adult.dateOfBirth ? `${calculateAge(adult.dateOfBirth)} yrs · ` : ''}{adult.gender}
+                      {adult.medicalInfo ? ' · ⚠ Medical info' : ''}
+                    </p>
+                  </div>
+                  <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* New visitor form */}
       {searchMode === 'new' && (
         <div className="space-y-4">
+          {newVisitorAge !== null && (
+            <div className={`text-xs font-medium px-3 py-1.5 rounded-lg inline-block ${
+              newVisitorIsAdult
+                ? 'bg-purple-100 text-purple-700'
+                : newVisitorAge >= 13
+                  ? 'bg-amber-100 text-amber-700'
+                  : 'bg-blue-100 text-blue-700'
+            }`}>
+              {newVisitorIsAdult ? 'Adult (18+)' : newVisitorAge >= 13 ? `Teen (${newVisitorAge} yrs)` : `Child (${newVisitorAge} yrs)`}
+            </div>
+          )}
+
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Full Name *</label>
               <input
                 type="text"
                 name="name"
@@ -443,32 +414,27 @@ const CheckIn = () => {
               {errors.dateOfBirth && <p className="text-sm text-rose-500 mt-1">{errors.dateOfBirth}</p>}
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
-              <select
-                name="gender"
-                value={newUserData.gender}
-                onChange={handleNewUserChange}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              >
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-                <option value="Other">Other</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Guardian Contact *</label>
-              <input
-                type="tel"
-                name="guardianContact"
-                value={newUserData.guardianContact}
-                onChange={handleNewUserChange}
-                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${errors.guardianContact ? 'border-rose-500' : 'border-gray-200'}`}
-              />
-              {errors.guardianContact && <p className="text-sm text-rose-500 mt-1">{errors.guardianContact}</p>}
-            </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+            <select
+              name="gender"
+              value={newUserData.gender}
+              onChange={handleNewUserChange}
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+            </select>
           </div>
+
+          {newUserData.dateOfBirth && !newVisitorIsAdult && (
+            <div className="bg-rose-50 border border-rose-200 rounded-xl p-3">
+              <p className="text-sm text-rose-700 font-medium">Only adults (18+) can be checked in without a guardian account.</p>
+              <p className="text-xs text-rose-600 mt-1">If this is a child, the guardian must register an account first.</p>
+            </div>
+          )}
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Medical Info</label>
             <textarea
@@ -620,79 +586,41 @@ const CheckIn = () => {
 
   /* ── main render ── */
 
-  const stepTotal = 3;
   const stepCurrent = step === 1 ? 1 : step === 2 ? 2 : 3;
 
   return (
     <div className="max-w-2xl mx-auto">
-      {/* Tabs */}
-      <div className="flex gap-1 mb-6 bg-gray-100 p-1 rounded-xl">
-        <button
-          onClick={() => setActiveTab('checkin')}
-          className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all ${
-            activeTab === 'checkin' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'
-          }`}
-        >
-          Check In
-        </button>
-        <button
-          onClick={() => setActiveTab('current')}
-          className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 ${
-            activeTab === 'current' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'
-          }`}
-        >
-          Currently In
-          {checkedInUsers.length > 0 && (
-            <span className="bg-indigo-600 text-white text-xs rounded-full px-1.5 py-0.5 leading-none">
-              {checkedInUsers.length}
-            </span>
-          )}
-        </button>
+      <div className="mb-4 flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Check In</h1>
+          <p className="text-gray-500 text-sm">Step {stepCurrent} of 3</p>
+        </div>
+        {step > 1 && (
+          <button
+            onClick={resetFlow}
+            className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1"
+          >
+            <X className="w-4 h-4" />
+            Clear
+          </button>
+        )}
       </div>
 
-      {activeTab === 'current' ? (
-        <div>
-          <div className="mb-4 flex items-center justify-between">
-            <h1 className="text-xl font-bold text-gray-900">Currently Checked In</h1>
-            <span className="text-sm text-gray-500">{checkedInUsers.length} active</span>
-          </div>
-          {renderCurrentlyIn()}
-        </div>
-      ) : (
-        <div>
-          <div className="mb-4 flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Check In</h1>
-              <p className="text-gray-500 text-sm">Step {stepCurrent} of {stepTotal}</p>
-            </div>
-            {step > 1 && (
-              <button
-                onClick={resetFlow}
-                className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1"
-              >
-                <X className="w-4 h-4" />
-                Clear
-              </button>
-            )}
-          </div>
+      {/* Progress bar */}
+      <div className="flex gap-2 mb-6">
+        {[1, 2, 3].map(s => (
+          <div
+            key={s}
+            className={`flex-1 h-2 rounded-full transition-colors ${stepCurrent >= s ? 'bg-indigo-600' : 'bg-gray-200'}`}
+          />
+        ))}
+      </div>
 
-          {/* Progress bar */}
-          <div className="flex gap-2 mb-6">
-            {[1, 2, 3].map(s => (
-              <div
-                key={s}
-                className={`flex-1 h-2 rounded-full transition-colors ${stepCurrent >= s ? 'bg-indigo-600' : 'bg-gray-200'}`}
-              />
-            ))}
-          </div>
-
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-            {step === 1 && renderStep1()}
-            {step === 2 && renderStep2()}
-            {step === 4 && renderStep4()}
-          </div>
-        </div>
-      )}
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+        {step === 1 && renderStep1()}
+        {step === 2 && renderStep2()}
+        {step === 4 && renderStep4()}
+      </div>
     </div>
   );
 };

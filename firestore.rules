@@ -2,35 +2,34 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    function getStaffRole() {
-      return get(/databases/$(database)/documents/staff/$(request.auth.uid)).data.role;
+    function isSignedIn() {
+      return request.auth != null;
     }
 
-    function isAdmin() {
-      return request.auth != null && getStaffRole() == 'Admin';
-    }
-
-    function isStaffOrAdmin() {
-      return request.auth != null && getStaffRole() in ['Admin', 'Supervisor', 'Staff'];
-    }
-
+    // A guardian is identified by having a doc in guardians/{uid}
     function isGuardian() {
-      return request.auth != null && exists(/databases/$(database)/documents/guardians/$(request.auth.uid));
+      return isSignedIn() && exists(/databases/$(database)/documents/guardians/$(request.auth.uid));
+    }
+
+    // Staff and admin are any authenticated users who are NOT guardians
+    function isStaffOrAdmin() {
+      return isSignedIn() && !isGuardian();
     }
 
     match /zones/{zoneId} {
-      allow read: if request.auth != null;
+      allow read: if isSignedIn();
       allow write: if isStaffOrAdmin();
     }
 
     match /users/{userId} {
       allow read, write: if isStaffOrAdmin();
       allow read: if isGuardian() && resource.data.guardianUid == request.auth.uid;
+      // Guardians can create children records linked to their own UID during registration
+      allow create: if isSignedIn() && request.resource.data.guardianUid == request.auth.uid;
     }
 
     match /staff/{staffId} {
-      allow read: if isStaffOrAdmin();
-      allow write: if isAdmin();
+      allow read, write: if isStaffOrAdmin();
     }
 
     match /sessions/{sessionId} {
@@ -42,15 +41,13 @@ service cloud.firestore {
     }
 
     match /attendanceLogs/{logId} {
-      allow read: if isStaffOrAdmin();
-      allow create: if isStaffOrAdmin();
-      allow update: if isStaffOrAdmin();
-      allow delete: if isAdmin();
+      allow read, write: if isStaffOrAdmin();
+      allow read: if isGuardian() &&
+        resource.data.userId in get(/databases/$(database)/documents/guardians/$(request.auth.uid)).data.childrenIds;
     }
 
     match /auditLogs/{logId} {
-      allow read: if isAdmin();
-      allow create: if isStaffOrAdmin();
+      allow read, write: if isStaffOrAdmin();
     }
 
     match /guardians/{guardianUid} {
@@ -59,8 +56,22 @@ service cloud.firestore {
     }
 
     match /systemConfig/{docId} {
-      allow read: if request.auth != null;
-      allow write: if isAdmin();
+      allow read: if isSignedIn();
+      allow write: if isStaffOrAdmin();
+    }
+
+    match /notifications/{notifId} {
+      allow read: if isStaffOrAdmin() || (isGuardian() && resource.data.guardianId == request.auth.uid);
+      allow create: if isStaffOrAdmin();
+    }
+
+    // Minimal public index used to validate guardian emails before sending password resets.
+    // Contains only { exists: true } — no sensitive data.
+    match /guardianEmails/{emailKey} {
+      allow read: if true;
+      allow create: if isSignedIn() &&
+        request.resource.data.keys().hasOnly(['exists']) &&
+        request.resource.data.exists == true;
     }
   }
 }

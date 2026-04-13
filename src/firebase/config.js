@@ -1,6 +1,6 @@
 import { getApp, getApps, initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { getFirestore, initializeFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -39,12 +39,19 @@ let auth = null;
 let secondaryAuth = null;
 
 if (firebaseConfigLooksValid) {
-  app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+  const isFirstInit = !getApps().length;
+  app = isFirstInit ? initializeApp(firebaseConfig) : getApp();
+
   secondaryApp = getApps().some((existingApp) => existingApp.name === 'secondary')
     ? getApp('secondary')
     : initializeApp(firebaseConfig, 'secondary');
 
-  db = getFirestore(app);
+  // initializeFirestore only on first load — avoids the Firestore internal assertion
+  // error (ID: b815/ca9) caused by rapid listener teardown during Vite HMR.
+  db = isFirstInit
+    ? initializeFirestore(app, { experimentalForceLongPolling: true })
+    : getFirestore(app);
+
   auth = getAuth(app);
   secondaryAuth = getAuth(secondaryApp);
 } else {

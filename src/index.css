@@ -100,6 +100,24 @@
   }
 }
 
+/* High-contrast accessibility mode */
+.high-contrast {
+  filter: contrast(1.5) brightness(0.95);
+}
+.high-contrast body,
+.high-contrast .bg-white {
+  background-color: #ffffff !important;
+}
+.high-contrast .text-gray-400,
+.high-contrast .text-gray-500,
+.high-contrast .text-gray-600 {
+  color: #1f2937 !important;
+}
+.high-contrast .border-gray-100,
+.high-contrast .border-gray-200 {
+  border-color: #6b7280 !important;
+}
+
 @layer base {
   * {
     @apply border-border;

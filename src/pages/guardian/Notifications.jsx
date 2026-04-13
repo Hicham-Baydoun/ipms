@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bell, Info, AlertTriangle, AlertCircle, Check } from 'lucide-react';
+import { Bell, Info, AlertTriangle, AlertCircle, Check, LogOut, ArrowRightLeft } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useAppData } from '../../context/DataContext';
 import { formatDateTime, formatRelativeTime } from '../../utils/formatters';
@@ -18,6 +18,10 @@ const Notifications = () => {
         return <AlertTriangle className="w-5 h-5 text-amber-500" />;
       case 'emergency':
         return <AlertCircle className="w-5 h-5 text-rose-500" />;
+      case 'checkout':
+        return <LogOut className="w-5 h-5 text-emerald-500" />;
+      case 'transfer':
+        return <ArrowRightLeft className="w-5 h-5 text-indigo-500" />;
       default:
         return <Bell className="w-5 h-5 text-gray-500" />;
     }
@@ -31,6 +35,10 @@ const Notifications = () => {
         return 'bg-amber-50 border-amber-200';
       case 'emergency':
         return 'bg-rose-50 border-rose-200';
+      case 'checkout':
+        return 'bg-emerald-50 border-emerald-200';
+      case 'transfer':
+        return 'bg-indigo-50 border-indigo-200';
       default:
         return 'bg-gray-50 border-gray-200';
     }

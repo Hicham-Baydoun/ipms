@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import {
   Menu, Bell, Search, Shield,
   Info, AlertTriangle, AlertCircle, Check, X,
-  User, MapPin
+  User, MapPin, Eye
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useAppData } from '../../context/DataContext';
@@ -36,6 +36,18 @@ const TopBar = ({ onMenuClick, isSidebarCollapsed }) => {
   const [globalSearch, setGlobalSearch] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [syncClock, setSyncClock] = useState(() => Date.now());
+  const [highContrast, setHighContrast] = useState(
+    () => localStorage.getItem('ipms_high_contrast') === 'true'
+  );
+
+  useEffect(() => {
+    if (highContrast) {
+      document.documentElement.classList.add('high-contrast');
+    } else {
+      document.documentElement.classList.remove('high-contrast');
+    }
+    localStorage.setItem('ipms_high_contrast', String(highContrast));
+  }, [highContrast]);
 
   const notifRef = useRef(null);
   const searchRef = useRef(null);
@@ -249,6 +261,17 @@ const TopBar = ({ onMenuClick, isSidebarCollapsed }) => {
               )}
             </div>
           )}
+
+          {/* High-contrast accessibility toggle */}
+          <button
+            onClick={() => setHighContrast((prev) => !prev)}
+            title={highContrast ? 'Disable high contrast' : 'Enable high contrast'}
+            className={`p-2 rounded-lg transition-colors ${
+              highContrast ? 'bg-yellow-100 text-yellow-700' : 'hover:bg-gray-100 text-gray-500'
+            }`}
+          >
+            <Eye className="w-5 h-5" />
+          </button>
 
           {/* Emergency button */}
           {canActivateEmergency && (

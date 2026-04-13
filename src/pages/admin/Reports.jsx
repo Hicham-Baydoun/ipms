@@ -136,6 +136,49 @@ const Reports = () => {
   const zoneUsageRefreshing = useDataRefreshPulse(zoneUsageData);
   const heatmapRefreshing = useDataRefreshPulse(heatmapData);
 
+  const handleExport = () => {
+    const escape = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+    let rows = [];
+    let filename = 'report.csv';
+
+    if (activeTab === 'attendance') {
+      rows = [
+        ['User', 'Zone', 'Check In', 'Check Out', 'Duration (min)'],
+        ...filteredLogs.map((log) => [
+          usersById[log.userId]?.fullName || usersById[log.userId]?.name || 'Unknown',
+          zonesById[log.zoneId]?.zoneName || 'Unknown',
+          log.checkInTime ? formatDate(log.checkInTime, 'yyyy-MM-dd HH:mm') : '',
+          log.checkOutTime ? formatDate(log.checkOutTime, 'yyyy-MM-dd HH:mm') : '',
+          log.duration ?? ''
+        ])
+      ];
+      filename = 'attendance_report.csv';
+    } else if (activeTab === 'zoneUsage') {
+      rows = [
+        ['Zone', 'Active Visits', 'Completed Visits'],
+        ...zoneUsageData.map((z) => [z.name, z.activeVisits, z.completedVisits])
+      ];
+      filename = 'zone_usage_report.csv';
+    } else if (activeTab === 'peakHours') {
+      rows = [
+        ['Hour', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        ...heatmapData.map((row) => [
+          row.hour, row.mon, row.tue, row.wed, row.thu, row.fri, row.sat, row.sun
+        ])
+      ];
+      filename = 'peak_hours_report.csv';
+    }
+
+    const csv = rows.map((r) => r.map(escape).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const attendanceColumns = [
     {
       key: 'userId',
@@ -185,9 +228,9 @@ const Reports = () => {
           <h1 className="text-2xl font-bold text-gray-900">Reports & Analytics</h1>
           <p className="text-gray-500">View detailed reports and analytics</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors">
+        <button onClick={handleExport} className="flex items-center gap-2 px-4 py-2 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors">
           <Download className="w-4 h-4" />
-          Export
+          Export CSV
         </button>
       </div>
 

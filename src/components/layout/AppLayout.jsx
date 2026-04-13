@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { AlertCircle } from 'lucide-react';
 import Sidebar from './Sidebar';
@@ -6,15 +6,57 @@ import TopBar from './TopBar';
 import EmergencyBanner from './EmergencyBanner';
 import { useAppData } from '../../context/DataContext';
 import { useAuth } from '../../context/AuthContext';
+import { useIdleTimer } from '../../hooks/useIdleTimer';
+import { useToast } from '../../context/ToastContext';
 
 const FACILITY_PHONE = '+1-555-9999';
 const FACILITY_PHONE_TEL = 'tel:+15559999';
 
+const OVERTIME_THRESHOLD_MS = 2 * 60 * 60 * 1000; // 2 hours
+
 const AppLayout = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  const { emergencyMode } = useAppData();
-  const { role } = useAuth();
+  const { emergencyMode, users } = useAppData();
+  const { role, logout, isAuthenticated } = useAuth();
+  const { warning } = useToast();
+  const alertedUsersRef = useRef(new Set());
+
+  // Auto-logout after 15 minutes of inactivity
+  const handleIdle = useCallback(() => {
+    logout();
+  }, [logout]);
+  useIdleTimer(handleIdle, isAuthenticated);
+
+  // Smart safety monitoring: alert staff when a visitor exceeds the time threshold
+  useEffect(() => {
+    if (role !== 'Staff' && role !== 'Supervisor' && role !== 'Admin') return;
+
+    const check = () => {
+      const now = Date.now();
+      users.forEach((user) => {
+        if (!user.isCheckedIn || !user.checkInTime) return;
+        const elapsed = now - new Date(user.checkInTime).getTime();
+        if (elapsed >= OVERTIME_THRESHOLD_MS && !alertedUsersRef.current.has(user.id)) {
+          alertedUsersRef.current.add(user.id);
+          warning(`${user.name} has been checked in for over 2 hours.`);
+        }
+      });
+    };
+
+    check();
+    const interval = setInterval(check, 60 * 1000);
+    return () => clearInterval(interval);
+  }, [users, role, warning]);
+
+  // Clear alert tracking when users check out
+  useEffect(() => {
+    users.forEach((user) => {
+      if (!user.isCheckedIn) {
+        alertedUsersRef.current.delete(user.id);
+      }
+    });
+  }, [users]);
 
   const toggleSidebar = () => setIsSidebarCollapsed(prev => !prev);
   const toggleMobileSidebar = () => setIsMobileSidebarOpen(prev => !prev);

@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Shield, UserCog, Users, User } from 'lucide-react';
+import { sendPasswordResetEmail } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
+import { auth, db } from '../../firebase/config';
 import { useAuth } from '../../context/AuthContext';
 
 const LoginPage = () => {
@@ -12,6 +15,9 @@ const LoginPage = () => {
   const [password, setPassword] = useState('');
   const [showError, setShowError] = useState(false);
   const [authError, setAuthError] = useState('');
+  const [showReset, setShowReset] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetStatus, setResetStatus] = useState('');
 
   React.useEffect(() => {
     const requestedRole = location.state?.requestedRole;
@@ -54,6 +60,23 @@ const LoginPage = () => {
       selectedColor: 'bg-emerald-600 border-emerald-600 text-white'
     }
   ];
+
+  const handlePasswordReset = async (e) => {
+    e.preventDefault();
+    if (!resetEmail) return;
+    try {
+      const emailLower = resetEmail.toLowerCase().trim();
+      const emailDoc = await getDoc(doc(db, 'guardianEmails', emailLower));
+      if (!emailDoc.exists()) {
+        setResetStatus('not-guardian');
+        return;
+      }
+      await sendPasswordResetEmail(auth, emailLower);
+      setResetStatus('success');
+    } catch {
+      setResetStatus('error');
+    }
+  };
 
   const handleRoleSelect = (roleId) => {
     setSelectedRole(roleId);
@@ -184,10 +207,49 @@ const LoginPage = () => {
             </button>
           </form>
 
+          <div className="mt-4 text-center">
+            <button
+              type="button"
+              onClick={() => { setShowReset(!showReset); setResetStatus(''); setResetEmail(''); }}
+              className="text-sm text-gray-400 hover:text-indigo-600 transition-colors"
+            >
+              Forgot password?
+            </button>
+          </div>
+
+          {showReset && (
+            <form onSubmit={handlePasswordReset} className="mt-4 space-y-3 border-t border-gray-100 pt-4">
+              <p className="text-sm text-gray-600 text-center">Enter your email to receive a reset link</p>
+              <input
+                type="email"
+                value={resetEmail}
+                onChange={e => setResetEmail(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                placeholder="your@email.com"
+                required
+              />
+              {resetStatus === 'success' && (
+                <p className="text-sm text-emerald-600 text-center">Reset link sent! Check your inbox.</p>
+              )}
+              {resetStatus === 'not-guardian' && (
+                <p className="text-sm text-rose-500 text-center">No guardian account found with this email.</p>
+              )}
+              {resetStatus === 'error' && (
+                <p className="text-sm text-rose-500 text-center">Something went wrong. Try again.</p>
+              )}
+              <button
+                type="submit"
+                className="w-full py-2 bg-gray-800 text-white rounded-lg text-sm font-medium hover:bg-gray-900 transition-colors"
+              >
+                Send Reset Link
+              </button>
+            </form>
+          )}
+
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-500">
               Don't have an account?{' '}
-              <button 
+              <button
                 onClick={() => navigate('/register')}
                 className="text-indigo-600 hover:text-indigo-700 font-medium"
               >

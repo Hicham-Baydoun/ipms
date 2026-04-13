@@ -14,6 +14,7 @@ import {
   ArrowRightLeft,
   UserCheck,
   Bell,
+  History,
   Shield,
   Menu,
   X
@@ -24,12 +25,13 @@ import { useAuth } from '../../context/AuthContext';
 const Sidebar = ({ isCollapsed, onToggle }) => {
   const location = useLocation();
   const { logout } = useAuth();
-  const { 
-    isAdmin, 
-    isStaff, 
-    isGuardian, 
-    canViewAuditLogs, 
-    canViewReports 
+  const {
+    isAdmin,
+    isSupervisor,
+    isStaff,
+    isGuardian,
+    canViewAuditLogs,
+    canViewReports
   } = usePermissions();
 
   const getNavItems = () => {
@@ -52,12 +54,15 @@ const Sidebar = ({ isCollapsed, onToggle }) => {
         { path: '/staff/zones', icon: Monitor, label: 'Zone Monitor' },
         { path: '/staff/users', icon: Search, label: 'User Lookup' },
         { path: '/staff/reassign', icon: ArrowRightLeft, label: 'Reassign' },
+        ...(isSupervisor && canViewReports ? [{ path: '/staff/reports', icon: BarChart3, label: 'Reports' }] : []),
+        ...(isSupervisor && canViewAuditLogs ? [{ path: '/staff/audit-logs', icon: ClipboardList, label: 'Audit Logs' }] : []),
       ];
     }
     
     if (isGuardian) {
       return [
         { path: '/guardian/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+        { path: '/guardian/history', icon: History, label: 'Visit History' },
         { path: '/guardian/pickup', icon: UserCheck, label: 'Pickup Auth' },
         { path: '/guardian/notifications', icon: Bell, label: 'Notifications' },
       ];
