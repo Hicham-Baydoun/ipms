@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -16,7 +16,9 @@ import {
   Bell,
   History,
   Shield,
-  X
+  X,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { usePermissions } from '../../hooks/usePermissions';
 import { useAuth } from '../../context/AuthContext';
@@ -32,6 +34,22 @@ const Sidebar = ({ isCollapsed, onToggle, isMobile = false }) => {
     canViewAuditLogs,
     canViewReports
   } = usePermissions();
+
+  // Track whether viewport is desktop (lg = 1024px+)
+  const [isDesktop, setIsDesktop] = useState(
+    () => typeof window !== 'undefined' && window.innerWidth >= 1024
+  );
+
+  useEffect(() => {
+    const mql = window.matchMedia('(min-width: 1024px)');
+    const handler = (e) => setIsDesktop(e.matches);
+    mql.addEventListener('change', handler);
+    setIsDesktop(mql.matches);
+    return () => mql.removeEventListener('change', handler);
+  }, []);
+
+  // Show labels when: mobile drawer, OR desktop AND not collapsed
+  const showLabels = isMobile || (isDesktop && !isCollapsed);
 
   const getNavItems = () => {
     if (isAdmin) {
@@ -69,10 +87,6 @@ const Sidebar = ({ isCollapsed, onToggle, isMobile = false }) => {
 
   const navItems = getNavItems();
 
-  // On tablet (md), always show icon-only. On desktop (lg+), respect isCollapsed.
-  // isMobile = full-width drawer (always shows labels)
-  const showLabel = isMobile || (!isCollapsed);
-
   return (
     <aside
       className={`bg-[#1E1B4B] text-white h-[100dvh] flex flex-col safe-pt safe-pb
@@ -82,18 +96,18 @@ const Sidebar = ({ isCollapsed, onToggle, isMobile = false }) => {
         }
       `}
     >
-      {/* Logo */}
+      {/* Header */}
       <div className="h-16 flex items-center justify-between px-3 border-b border-white/10 flex-shrink-0">
         <div className="flex items-center gap-2 min-w-0">
           <div className="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center flex-shrink-0">
             <Shield className="w-4 h-4 text-white" />
           </div>
-          {showLabel && (
-            <span className={`font-bold text-base truncate ${!isMobile ? 'hidden lg:block' : ''}`}>
-              IPMS
-            </span>
+          {showLabels && (
+            <span className="font-bold text-base truncate">IPMS</span>
           )}
         </div>
+
+        {/* Mobile: X to close drawer */}
         {isMobile && (
           <button
             onClick={onToggle}
@@ -101,6 +115,20 @@ const Sidebar = ({ isCollapsed, onToggle, isMobile = false }) => {
             aria-label="Close menu"
           >
             <X className="w-5 h-5 text-white" />
+          </button>
+        )}
+
+        {/* Desktop: chevron to collapse/expand */}
+        {!isMobile && isDesktop && (
+          <button
+            onClick={onToggle}
+            className="p-1.5 hover:bg-white/10 rounded-lg transition-colors flex items-center justify-center flex-shrink-0"
+            aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            {isCollapsed
+              ? <ChevronRight className="w-4 h-4 text-gray-400" />
+              : <ChevronLeft className="w-4 h-4 text-gray-400" />
+            }
           </button>
         )}
       </div>
@@ -116,25 +144,36 @@ const Sidebar = ({ isCollapsed, onToggle, isMobile = false }) => {
 
             return (
               <li key={item.path}>
-                <NavLink
-                  to={item.path}
-                  onClick={isMobile ? onToggle : undefined}
-                  title={!showLabel ? item.label : ''}
-                  className={`flex items-center gap-3 px-2 py-2.5 rounded-lg transition-all nav-item-hover min-h-[44px]
-                    ${isActive
-                      ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-900/20'
-                      : 'text-gray-300 hover:bg-white/10 hover:text-white'}
-                    ${showLabel ? '' : 'justify-center'}
-                    ${!isMobile && !isCollapsed ? 'lg:justify-start' : ''}
-                  `}
-                >
-                  <Icon className="w-5 h-5 flex-shrink-0" />
-                  {showLabel && (
-                    <span className={`font-medium text-sm truncate ${!isMobile ? 'hidden lg:block' : ''}`}>
-                      {item.label}
-                    </span>
-                  )}
-                </NavLink>
+                {showLabels ? (
+                  /* Expanded: icon + label row */
+                  <NavLink
+                    to={item.path}
+                    onClick={isMobile ? onToggle : undefined}
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all min-h-[44px]
+                      ${isActive
+                        ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-900/20'
+                        : 'text-gray-300 hover:bg-white/10 hover:text-white'}
+                    `}
+                  >
+                    <Icon className="w-5 h-5 flex-shrink-0" />
+                    <span className="font-medium text-sm truncate">{item.label}</span>
+                  </NavLink>
+                ) : (
+                  /* Icon-only: centered icon square */
+                  <NavLink
+                    to={item.path}
+                    title={item.label}
+                    className="flex items-center justify-center min-h-[44px] w-full"
+                  >
+                    <div className={`w-10 h-10 flex items-center justify-center rounded-lg transition-all
+                      ${isActive
+                        ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-900/20'
+                        : 'text-gray-300 hover:bg-white/10 hover:text-white'}
+                    `}>
+                      <Icon className="w-5 h-5" />
+                    </div>
+                  </NavLink>
+                )}
               </li>
             );
           })}
@@ -143,21 +182,25 @@ const Sidebar = ({ isCollapsed, onToggle, isMobile = false }) => {
 
       {/* Logout */}
       <div className="p-2 border-t border-white/10 flex-shrink-0">
-        <button
-          onClick={logout}
-          title={!showLabel ? 'Logout' : ''}
-          className={`flex items-center gap-3 px-2 py-2.5 rounded-lg text-gray-300 hover:bg-white/10 hover:text-white transition-all w-full min-h-[44px]
-            ${showLabel ? '' : 'justify-center'}
-            ${!isMobile && !isCollapsed ? 'lg:justify-start' : ''}
-          `}
-        >
-          <LogOut className="w-5 h-5 flex-shrink-0" />
-          {showLabel && (
-            <span className={`font-medium text-sm ${!isMobile ? 'hidden lg:block' : ''}`}>
-              Logout
-            </span>
-          )}
-        </button>
+        {showLabels ? (
+          <button
+            onClick={logout}
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-300 hover:bg-white/10 hover:text-white transition-all w-full min-h-[44px]"
+          >
+            <LogOut className="w-5 h-5 flex-shrink-0" />
+            <span className="font-medium text-sm">Logout</span>
+          </button>
+        ) : (
+          <div className="flex items-center justify-center">
+            <button
+              onClick={logout}
+              title="Logout"
+              className="w-10 h-10 flex items-center justify-center rounded-lg text-gray-300 hover:bg-white/10 hover:text-white transition-all"
+            >
+              <LogOut className="w-5 h-5" />
+            </button>
+          </div>
+        )}
       </div>
     </aside>
   );
