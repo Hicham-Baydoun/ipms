@@ -1,11 +1,11 @@
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { 
-  LayoutDashboard, 
-  MapPin, 
-  Users, 
-  BarChart3, 
-  ClipboardList, 
+import {
+  LayoutDashboard,
+  MapPin,
+  Users,
+  BarChart3,
+  ClipboardList,
   Calendar,
   LogIn,
   LogOut,
@@ -16,13 +16,12 @@ import {
   Bell,
   History,
   Shield,
-  Menu,
   X
 } from 'lucide-react';
 import { usePermissions } from '../../hooks/usePermissions';
 import { useAuth } from '../../context/AuthContext';
 
-const Sidebar = ({ isCollapsed, onToggle }) => {
+const Sidebar = ({ isCollapsed, onToggle, isMobile = false }) => {
   const location = useLocation();
   const { logout } = useAuth();
   const {
@@ -45,7 +44,6 @@ const Sidebar = ({ isCollapsed, onToggle }) => {
         { path: '/admin/sessions', icon: Calendar, label: 'Sessions' },
       ];
     }
-    
     if (isStaff) {
       return [
         { path: '/staff/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -58,7 +56,6 @@ const Sidebar = ({ isCollapsed, onToggle }) => {
         ...(isSupervisor && canViewAuditLogs ? [{ path: '/staff/audit-logs', icon: ClipboardList, label: 'Audit Logs' }] : []),
       ];
     }
-    
     if (isGuardian) {
       return [
         { path: '/guardian/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -67,37 +64,37 @@ const Sidebar = ({ isCollapsed, onToggle }) => {
         { path: '/guardian/notifications', icon: Bell, label: 'Notifications' },
       ];
     }
-    
     return [];
   };
 
   const navItems = getNavItems();
 
+  // On tablet (md), always show icon-only. On desktop (lg+), respect isCollapsed.
+  // isMobile = full-width drawer (always shows labels)
+  const showLabel = isMobile || (!isCollapsed);
+
   return (
-    <aside 
-      className={`bg-[#1E1B4B] text-white h-screen fixed left-0 top-0 z-40 sidebar-transition flex flex-col ${
-        isCollapsed ? 'w-[72px]' : 'w-[260px]'
-      }`}
+    <aside
+      className={`bg-[#1E1B4B] text-white h-screen fixed left-0 top-0 z-40 sidebar-transition flex flex-col
+        ${isMobile ? 'w-[260px]' : `w-[64px] lg:${isCollapsed ? 'w-[64px]' : 'w-[240px]'}`}
+      `}
     >
       {/* Logo */}
-      <div className="h-16 flex items-center justify-between px-4 border-b border-white/10">
-        {!isCollapsed && (
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center">
-              <Shield className="w-5 h-5 text-white" />
-            </div>
-            <span className="font-bold text-lg">IPMS</span>
+      <div className="h-16 flex items-center justify-between px-3 border-b border-white/10 flex-shrink-0">
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center flex-shrink-0">
+            <Shield className="w-4 h-4 text-white" />
           </div>
-        )}
-        {isCollapsed && (
-          <div className="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center mx-auto">
-            <Shield className="w-5 h-5 text-white" />
-          </div>
-        )}
-        {!isCollapsed && (
+          {showLabel && (
+            <span className={`font-bold text-base truncate ${!isMobile ? 'hidden lg:block' : ''}`}>
+              IPMS
+            </span>
+          )}
+        </div>
+        {isMobile && (
           <button
             onClick={onToggle}
-            className="p-2.5 hover:bg-white/10 rounded-lg transition-colors lg:hidden min-h-[44px] min-w-[44px] flex items-center justify-center"
+            className="p-2 hover:bg-white/10 rounded-lg transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center flex-shrink-0"
           >
             <X className="w-5 h-5" />
           </button>
@@ -105,27 +102,33 @@ const Sidebar = ({ isCollapsed, onToggle }) => {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 py-4 px-3 overflow-y-auto custom-scrollbar">
-        <ul className="space-y-1">
+      <nav className="flex-1 py-3 px-2 overflow-y-auto custom-scrollbar">
+        <ul className="space-y-0.5">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = location.pathname === item.path || 
-                           location.pathname.startsWith(item.path + '/');
-            
+            const isActive =
+              location.pathname === item.path ||
+              location.pathname.startsWith(item.path + '/');
+
             return (
               <li key={item.path}>
                 <NavLink
                   to={item.path}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all nav-item-hover ${
-                    isActive 
-                      ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-900/20' 
-                      : 'text-gray-300 hover:bg-white/5 hover:text-white'
-                  } ${isCollapsed ? 'justify-center' : ''}`}
-                  title={isCollapsed ? item.label : ''}
+                  onClick={isMobile ? onToggle : undefined}
+                  title={!showLabel ? item.label : ''}
+                  className={`flex items-center gap-3 px-2 py-2.5 rounded-lg transition-all nav-item-hover min-h-[44px]
+                    ${isActive
+                      ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-900/20'
+                      : 'text-gray-300 hover:bg-white/10 hover:text-white'}
+                    ${showLabel ? '' : 'justify-center'}
+                    ${!isMobile && !isCollapsed ? 'lg:justify-start' : ''}
+                  `}
                 >
-                  <Icon className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-white' : ''}`} />
-                  {!isCollapsed && (
-                    <span className="font-medium text-sm">{item.label}</span>
+                  <Icon className="w-5 h-5 flex-shrink-0" />
+                  {showLabel && (
+                    <span className={`font-medium text-sm truncate ${!isMobile ? 'hidden lg:block' : ''}`}>
+                      {item.label}
+                    </span>
                   )}
                 </NavLink>
               </li>
@@ -135,17 +138,20 @@ const Sidebar = ({ isCollapsed, onToggle }) => {
       </nav>
 
       {/* Logout */}
-      <div className="p-3 border-t border-white/10">
+      <div className="p-2 border-t border-white/10 flex-shrink-0">
         <button
           onClick={logout}
-          className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-300 hover:bg-white/5 hover:text-white transition-all w-full ${
-            isCollapsed ? 'justify-center' : ''
-          }`}
-          title={isCollapsed ? 'Logout' : ''}
+          title={!showLabel ? 'Logout' : ''}
+          className={`flex items-center gap-3 px-2 py-2.5 rounded-lg text-gray-300 hover:bg-white/10 hover:text-white transition-all w-full min-h-[44px]
+            ${showLabel ? '' : 'justify-center'}
+            ${!isMobile && !isCollapsed ? 'lg:justify-start' : ''}
+          `}
         >
           <LogOut className="w-5 h-5 flex-shrink-0" />
-          {!isCollapsed && (
-            <span className="font-medium text-sm">Logout</span>
+          {showLabel && (
+            <span className={`font-medium text-sm ${!isMobile ? 'hidden lg:block' : ''}`}>
+              Logout
+            </span>
           )}
         </button>
       </div>
