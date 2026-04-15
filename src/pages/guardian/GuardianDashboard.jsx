@@ -6,6 +6,7 @@ import { calculateAge } from '../../utils/ageCalculator';
 import { formatTime } from '../../utils/formatters';
 import OccupancyBar from '../../components/ui/OccupancyBar';
 import StatusDot from '../../components/ui/StatusDot';
+import { FACILITY_CONFIG } from '../../config/facilityConfig';
 
 const GuardianDashboard = () => {
   const { user: currentGuardianUser } = useAuth();
@@ -96,7 +97,7 @@ const GuardianDashboard = () => {
             <div>
               <h3 className="font-semibold text-rose-800">Emergency Alert</h3>
               <p className="text-sm text-rose-600">
-                Please contact the facility immediately: +1-555-9999
+                Please contact the facility immediately: {FACILITY_CONFIG.emergencyContact}
               </p>
             </div>
           </div>
@@ -191,7 +192,7 @@ const GuardianDashboard = () => {
         </p>
         <div className="flex items-center gap-2 text-indigo-600">
           <span className="text-sm font-medium">Facility Phone:</span>
-          <span className="text-sm">+1-555-9999</span>
+          <span className="text-sm">{FACILITY_CONFIG.emergencyContact}</span>
         </div>
       </div>
     </div>

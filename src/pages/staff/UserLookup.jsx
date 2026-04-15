@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Search, X, User, MapPin, Clock, AlertTriangle, Calendar } from 'lucide-react';
 import { useData } from '../../context/DataContext';
+import { useAuth } from '../../context/AuthContext';
 import DataTable from '../../components/ui/DataTable';
 import { calculateAge } from '../../utils/ageCalculator';
 import { formatDate, formatDateTime } from '../../utils/formatters';
@@ -9,7 +10,9 @@ import StatusDot from '../../components/ui/StatusDot';
 
 const UserLookup = () => {
   const location = useLocation();
+  const { role } = useAuth();
   const { users, zones, guardians, attendanceLogs } = useData();
+  const canViewMedical = role === 'Admin' || role === 'Supervisor';
   const [selectedUser, setSelectedUser] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -164,8 +167,8 @@ const UserLookup = () => {
                 </div>
               )}
 
-              {/* Medical Information */}
-              {(selectedUser.medicalInfo || selectedUser.allergies) && (
+              {/* Medical Information — visible to Supervisors and Admins only */}
+              {canViewMedical && (selectedUser.medicalInfo || selectedUser.allergies) && (
                 <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
                   <div className="flex items-center gap-2 mb-3">
                     <AlertTriangle className="w-5 h-5 text-amber-600" />

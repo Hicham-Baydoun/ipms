@@ -156,9 +156,6 @@ const GuardianRegisterPage = () => {
         authorizedPickup: []
       });
 
-      // Register email in public index so password reset can verify guardian accounts
-      await setDoc(doc(db, 'guardianEmails', guardianEmail), { exists: true });
-
       const childIds = [];
       for (const child of children) {
         const childRef = await addDoc(collection(db, 'users'), {

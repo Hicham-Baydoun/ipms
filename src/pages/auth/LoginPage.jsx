@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Shield, UserCog, Users, User } from 'lucide-react';
 import { sendPasswordResetEmail } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
-import { auth, db } from '../../firebase/config';
+import { auth } from '../../firebase/config';
 import { useAuth } from '../../context/AuthContext';
 
 const LoginPage = () => {
@@ -66,16 +65,13 @@ const LoginPage = () => {
     if (!resetEmail) return;
     try {
       const emailLower = resetEmail.toLowerCase().trim();
-      const emailDoc = await getDoc(doc(db, 'guardianEmails', emailLower));
-      if (!emailDoc.exists()) {
-        setResetStatus('not-guardian');
-        return;
-      }
+      // Always attempt the reset — never reveal whether the email is registered
       await sendPasswordResetEmail(auth, emailLower);
-      setResetStatus('success');
     } catch {
-      setResetStatus('error');
+      // Silently ignore errors to prevent email enumeration
     }
+    // Always show the same message regardless of outcome
+    setResetStatus('success');
   };
 
   const handleRoleSelect = (roleId) => {
@@ -229,13 +225,7 @@ const LoginPage = () => {
                 required
               />
               {resetStatus === 'success' && (
-                <p className="text-sm text-emerald-600 text-center">Reset link sent! Check your inbox.</p>
-              )}
-              {resetStatus === 'not-guardian' && (
-                <p className="text-sm text-rose-500 text-center">No guardian account found with this email.</p>
-              )}
-              {resetStatus === 'error' && (
-                <p className="text-sm text-rose-500 text-center">Something went wrong. Try again.</p>
+                <p className="text-sm text-emerald-600 text-center">If this email is registered, a reset link has been sent.</p>
               )}
               <button
                 type="submit"

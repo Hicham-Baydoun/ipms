@@ -69,6 +69,15 @@ function ChartContainer({
   )
 }
 
+// Allowlist: only accept hex, rgb/rgba, hsl/hsla, named CSS colors, and CSS variables
+const SAFE_COLOR_RE = /^(#[0-9a-fA-F]{3,8}|rgba?\(\s*[\d.,%\s]+\)|hsla?\(\s*[\d.,%\s]+\)|[a-zA-Z]+|var\(--[a-zA-Z0-9_-]+\))$/
+
+const sanitizeColor = (value: string | undefined): string | null => {
+  if (!value) return null
+  const trimmed = value.trim()
+  return SAFE_COLOR_RE.test(trimmed) ? trimmed : null
+}
+
 const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
   const colorConfig = Object.entries(config).filter(
     ([, config]) => config.theme || config.color
@@ -87,9 +96,10 @@ const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
 ${prefix} [data-chart=${id}] {
 ${colorConfig
   .map(([key, itemConfig]) => {
-    const color =
+    const raw =
       itemConfig.theme?.[theme as keyof typeof itemConfig.theme] ||
       itemConfig.color
+    const color = sanitizeColor(raw)
     return color ? `  --color-${key}: ${color};` : null
   })
   .join("\n")}
