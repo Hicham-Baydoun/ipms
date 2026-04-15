@@ -64,9 +64,6 @@ out
 .env.*
 !.env.example
 
-# Firebase service account — never commit this
-scripts/serviceAccountKey.json
-
 # Tooling / platform
 .firebase/
 .serverless/
