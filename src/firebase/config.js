@@ -3,63 +3,28 @@ import { getAuth } from 'firebase/auth';
 import { getFirestore, initializeFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID
+  apiKey: "AIzaSyDdNNT0LuJYN5aCn3f-5S0it86vGfW4gg0",
+  authDomain: "seproject-7f60a.firebaseapp.com",
+  projectId: "seproject-7f60a",
+  storageBucket: "seproject-7f60a.firebasestorage.app",
+  messagingSenderId: "660024164552",
+  appId: "1:660024164552:web:7ed6bfe541ae4a70ae65fd"
 };
 
-const requiredKeys = [
-  'apiKey',
-  'authDomain',
-  'projectId',
-  'storageBucket',
-  'messagingSenderId',
-  'appId'
-];
+const isFirstInit = !getApps().length;
+const app = isFirstInit ? initializeApp(firebaseConfig) : getApp();
 
-const firebaseConfigLooksValid = requiredKeys.every((key) => {
-  const value = firebaseConfig[key];
-  if (typeof value !== 'string') return false;
+const secondaryApp = getApps().some((existingApp) => existingApp.name === 'secondary')
+  ? getApp('secondary')
+  : initializeApp(firebaseConfig, 'secondary');
 
-  const normalized = value.trim().toLowerCase();
-  if (!normalized) return false;
-  if (normalized.includes('your_') || normalized.includes('changeme')) return false;
-  if (normalized === 'xxx' || normalized.startsWith('xxx.') || normalized.endsWith('.xxx')) return false;
-  if (/^x+$/.test(normalized)) return false;
-  return true;
-});
+const db = isFirstInit
+  ? initializeFirestore(app, { experimentalForceLongPolling: true })
+  : getFirestore(app);
 
-let app = null;
-let secondaryApp = null;
-let db = null;
-let auth = null;
-let secondaryAuth = null;
-
-if (firebaseConfigLooksValid) {
-  const isFirstInit = !getApps().length;
-  app = isFirstInit ? initializeApp(firebaseConfig) : getApp();
-
-  secondaryApp = getApps().some((existingApp) => existingApp.name === 'secondary')
-    ? getApp('secondary')
-    : initializeApp(firebaseConfig, 'secondary');
-
-  // initializeFirestore only on first load — avoids the Firestore internal assertion
-  // error (ID: b815/ca9) caused by rapid listener teardown during Vite HMR.
-  db = isFirstInit
-    ? initializeFirestore(app, { experimentalForceLongPolling: true })
-    : getFirestore(app);
-
-  auth = getAuth(app);
-  secondaryAuth = getAuth(secondaryApp);
-} else {
-  console.warn('Firebase config is missing or invalid. Update .env with valid VITE_FIREBASE_* values.');
-}
+const auth = getAuth(app);
+const secondaryAuth = getAuth(secondaryApp);
 
 export { app, db, auth, secondaryApp, secondaryAuth };
 
-export const isFirebaseConfigured = () => {
-  return Boolean(firebaseConfig.apiKey && firebaseConfig.apiKey !== 'xxx' && firebaseConfigLooksValid);
-};
+export const isFirebaseConfigured = () => true;
