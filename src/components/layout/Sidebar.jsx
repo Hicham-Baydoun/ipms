@@ -92,7 +92,9 @@ const Sidebar = ({ isCollapsed, onToggle, isMobile = false }) => {
       className={`bg-[#1E1B4B] text-white h-[100dvh] flex flex-col safe-pt safe-pb
         ${isMobile
           ? 'w-[72vw] max-w-[260px]'
-          : `fixed left-0 top-0 z-40 sidebar-transition w-[64px] lg:${isCollapsed ? 'w-[64px]' : 'w-[240px]'}`
+          : isCollapsed
+            ? 'fixed left-0 top-0 z-40 sidebar-transition w-[64px]'
+            : 'fixed left-0 top-0 z-40 sidebar-transition w-[64px] lg:w-[240px]'
         }
       `}
     >
