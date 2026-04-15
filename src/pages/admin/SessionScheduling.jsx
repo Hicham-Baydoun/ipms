@@ -118,14 +118,14 @@ const SessionScheduling = () => {
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Session Scheduling</h1>
-          <p className="text-gray-500">Manage sessions and activities</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Session Scheduling</h1>
+          <p className="text-gray-500 text-sm">Manage sessions and activities</p>
         </div>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors self-start sm:self-auto"
         >
           <Plus className="w-5 h-5" />
           Add Session
@@ -151,6 +151,8 @@ const SessionScheduling = () => {
 
       {/* Weekly Calendar View */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="overflow-x-auto">
+        <div className="min-w-[640px]">
         <div className="grid grid-cols-9 border-b border-gray-100">
           <div className="p-4 border-r border-gray-100 bg-gray-50">
             <span className="text-xs font-medium text-gray-500">Time</span>
@@ -208,6 +210,8 @@ const SessionScheduling = () => {
               })}
             </div>
           ))}
+        </div>
+        </div>
         </div>
       </div>
 

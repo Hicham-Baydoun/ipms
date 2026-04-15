@@ -2,10 +2,10 @@ import React, { useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 
 const SIZE_CLASSES = {
-  sm: 'max-w-md',
-  md: 'max-w-lg',
-  lg: 'max-w-2xl',
-  xl: 'max-w-4xl',
+  sm: 'max-w-full sm:max-w-md',
+  md: 'max-w-full sm:max-w-lg',
+  lg: 'max-w-full sm:max-w-2xl',
+  xl: 'max-w-full sm:max-w-4xl',
 };
 
 const Modal = ({ isOpen, onClose, title, children, size = 'md' }) => {
@@ -55,7 +55,7 @@ const Modal = ({ isOpen, onClose, title, children, size = 'md' }) => {
   return (
     <div
       ref={modalRef}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in"
+      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/50 backdrop-blur-sm animate-fade-in"
       onMouseDown={handleBackdropMouseDown}
       onClick={handleBackdropClick}
     >

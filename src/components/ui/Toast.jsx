@@ -27,8 +27,8 @@ const ToastItem = ({ toast, onRemove }) => {
   const Icon = iconMap[toast.type];
 
   return (
-    <div 
-      className={`flex items-start gap-3 p-4 rounded-xl border shadow-lg min-w-[320px] max-w-md animate-toast-slide-in ${colorMap[toast.type]}`}
+    <div
+      className={`flex items-start gap-3 p-4 rounded-xl border shadow-lg w-[calc(100vw-2rem)] sm:w-auto sm:min-w-[320px] sm:max-w-md animate-toast-slide-in ${colorMap[toast.type]}`}
       role="alert"
     >
       <Icon className={`w-5 h-5 flex-shrink-0 mt-0.5 ${iconColorMap[toast.type]}`} />
@@ -52,7 +52,7 @@ const ToastContainer = () => {
   if (toasts.length === 0) return null;
 
   return (
-    <div className="fixed top-4 right-4 z-[100] flex flex-col gap-3">
+    <div className="fixed top-4 right-2 sm:right-4 z-[100] flex flex-col gap-3">
       {toasts.map(toast => (
         <ToastItem 
           key={toast.id} 

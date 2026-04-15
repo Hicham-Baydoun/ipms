@@ -22,13 +22,13 @@ const StatCard = ({
 
   return (
     <div 
-      className={`bg-white rounded-2xl p-6 shadow-sm border border-gray-100 card-hover animate-fade-slide-up ${delay > 0 ? `animate-fade-slide-up-delay-${delay}` : ''}`}
+      className={`bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-gray-100 card-hover animate-fade-slide-up ${delay > 0 ? `animate-fade-slide-up-delay-${delay}` : ''}`}
       style={{ animationDelay: delay ? `${delay * 80}ms` : '0ms' }}
     >
       <div className="flex items-start justify-between">
         <div>
           <p className="text-sm font-medium text-gray-500 mb-1">{label}</p>
-          <p className="text-3xl font-bold text-gray-900">
+          <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">
             {count}{suffix}
           </p>
         </div>

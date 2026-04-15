@@ -93,7 +93,7 @@ const DataTable = ({
               {columns.map(col => (
                 <th 
                   key={col.key}
-                  className={`px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider ${col.sortable !== false ? 'cursor-pointer hover:bg-gray-100' : ''}`}
+                  className={`px-3 sm:px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider ${col.sortable !== false ? 'cursor-pointer hover:bg-gray-100' : ''}`}
                   onClick={() => col.sortable !== false && handleSort(col.key)}
                 >
                   <div className="flex items-center gap-1">
@@ -126,7 +126,7 @@ const DataTable = ({
                   className={`hover:bg-gray-50 transition-colors ${onRowClick ? 'cursor-pointer' : ''} ${rowClassName}`}
                 >
                   {columns.map(col => (
-                    <td key={col.key} className="px-6 py-4 whitespace-nowrap">
+                    <td key={col.key} className="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-sm">
                       {col.render ? col.render(row[col.key], row) : row[col.key]}
                     </td>
                   ))}
@@ -138,7 +138,7 @@ const DataTable = ({
       </div>
 
       {pagination && totalPages > 1 && (
-        <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between">
+        <div className="px-3 sm:px-6 py-4 border-t border-gray-100 flex flex-wrap items-center justify-between gap-2">
           <p className="text-sm text-gray-500">
             Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, sortedData.length)} of {sortedData.length} entries
           </p>

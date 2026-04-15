@@ -100,7 +100,7 @@ const AppLayout = () => {
 
         <EmergencyBanner />
 
-        <main className="p-4 lg:p-6">
+        <main className="p-3 sm:p-4 lg:p-6">
           <div className="max-w-[1440px] mx-auto">
             <Outlet />
           </div>
