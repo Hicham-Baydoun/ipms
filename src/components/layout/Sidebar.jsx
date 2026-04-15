@@ -75,8 +75,8 @@ const Sidebar = ({ isCollapsed, onToggle, isMobile = false }) => {
 
   return (
     <aside
-      className={`bg-[#1E1B4B] text-white h-screen fixed left-0 top-0 z-40 sidebar-transition flex flex-col
-        ${isMobile ? 'w-[260px]' : `w-[64px] lg:${isCollapsed ? 'w-[64px]' : 'w-[240px]'}`}
+      className={`bg-[#1E1B4B] text-white h-[100dvh] fixed left-0 top-0 z-40 sidebar-transition flex flex-col safe-pt safe-pb
+        ${isMobile ? 'w-[72vw] max-w-[260px]' : `w-[64px] lg:${isCollapsed ? 'w-[64px]' : 'w-[240px]'}`}
       `}
     >
       {/* Logo */}
@@ -94,9 +94,10 @@ const Sidebar = ({ isCollapsed, onToggle, isMobile = false }) => {
         {isMobile && (
           <button
             onClick={onToggle}
-            className="p-2 hover:bg-white/10 rounded-lg transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center flex-shrink-0"
+            className="p-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center flex-shrink-0"
+            aria-label="Close menu"
           >
-            <X className="w-5 h-5" />
+            <X className="w-5 h-5 text-white" />
           </button>
         )}
       </div>
