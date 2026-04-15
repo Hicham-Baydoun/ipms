@@ -6,15 +6,9 @@ import { generateUsername } from '../utils/usernameGenerator';
 
 const AUTH_CACHE_KEY = 'ipms_auth_cache';
 
-// Rate limiting: track failed login attempts in memory (not persisted)
-const loginAttempts = { count: 0, lockedUntil: 0 };
-const MAX_ATTEMPTS = 5;
-const LOCKOUT_MS = 60_000; // 1 minute
-
 const readCachedAuth = () => {
   try {
-    // sessionStorage is cleared when the tab closes — safer than localStorage
-    const raw = sessionStorage.getItem(AUTH_CACHE_KEY);
+    const raw = localStorage.getItem(AUTH_CACHE_KEY);
     if (!raw) return null;
     return JSON.parse(raw);
   } catch (error) {
@@ -26,15 +20,15 @@ const readCachedAuth = () => {
 const writeCachedAuth = (authState) => {
   try {
     if (!authState?.user?.uid || !authState?.role) {
-      sessionStorage.removeItem(AUTH_CACHE_KEY);
+      localStorage.removeItem(AUTH_CACHE_KEY);
       return;
     }
-    // Store only the minimum needed — no profile data
-    sessionStorage.setItem(
+    localStorage.setItem(
       AUTH_CACHE_KEY,
       JSON.stringify({
         uid: authState.user.uid,
-        role: authState.role
+        role: authState.role,
+        profile: authState.profile || null
       })
     );
   } catch (error) {
@@ -47,7 +41,7 @@ const cachedAuth = isFirebaseConfigured() ? readCachedAuth() : null;
 const initialState = {
   role: cachedAuth?.role || null,
   user: cachedAuth?.uid ? { uid: cachedAuth.uid } : null,
-  profile: null, // Profile is never cached — always fetched fresh from Firestore
+  profile: cachedAuth?.profile || null,
   isAuthenticated: Boolean(cachedAuth?.uid && cachedAuth?.role),
   loading: isFirebaseConfigured(),
   error: null
@@ -243,30 +237,10 @@ export const AuthProvider = ({ children }) => {
         throw new Error('Email and password are required.');
       }
 
-      // Rate limiting: block if locked out
-      const now = Date.now();
-      if (loginAttempts.lockedUntil > now) {
-        const secondsLeft = Math.ceil((loginAttempts.lockedUntil - now) / 1000);
-        throw new Error(`Too many failed attempts. Try again in ${secondsLeft} seconds.`);
-      }
-
       dispatch({ type: 'SET_LOADING', payload: true });
       dispatch({ type: 'SET_ERROR', payload: null });
 
-      let credentials;
-      try {
-        credentials = await signInWithEmailAndPassword(auth, parsedInput.email, parsedInput.password);
-        // Successful credential check — reset attempt counter
-        loginAttempts.count = 0;
-        loginAttempts.lockedUntil = 0;
-      } catch (err) {
-        loginAttempts.count += 1;
-        if (loginAttempts.count >= MAX_ATTEMPTS) {
-          loginAttempts.lockedUntil = Date.now() + LOCKOUT_MS;
-          loginAttempts.count = 0;
-        }
-        throw err;
-      }
+      const credentials = await signInWithEmailAndPassword(auth, parsedInput.email, parsedInput.password);
       const resolvedRole = await resolveRoleFromFirestore(credentials.user);
 
       if (!resolvedRole) {
@@ -313,9 +287,12 @@ export const AuthProvider = ({ children }) => {
 
   const updateUser = useCallback((userData) => {
     dispatch({ type: 'UPDATE_USER', payload: userData });
-    // Only refresh the uid+role cache — profile is never persisted
-    writeCachedAuth({ user: state.user, role: state.role });
-  }, [state.role, state.user]);
+    writeCachedAuth({
+      user: state.user,
+      role: state.role,
+      profile: state.profile ? { ...state.profile, ...userData } : userData
+    });
+  }, [state.profile, state.role, state.user]);
 
   const contextValue = useMemo(
     () => ({

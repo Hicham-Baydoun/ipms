@@ -23,8 +23,6 @@ const RoleSwitcher = () => {
     navigate('/login', { state: { requestedRole: newRole } });
   };
 
-  // Only render in development — never expose in production builds
-  if (!import.meta.env.DEV) return null;
   if (!role) return null;
 
   if (isMinimized) {

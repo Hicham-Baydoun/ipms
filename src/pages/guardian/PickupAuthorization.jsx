@@ -79,11 +79,10 @@ const PickupAuthorization = () => {
       ];
     }
 
-    // Always use the authenticated user's UID — never a value from state that could be tampered with
     dispatch({
       type: 'UPDATE_GUARDIAN_PICKUP',
       payload: {
-        guardianId: user.uid,
+        guardianId: currentGuardian.id,
         authorizedPickup: updatedPickup
       }
     });
@@ -98,7 +97,7 @@ const PickupAuthorization = () => {
     dispatch({
       type: 'UPDATE_GUARDIAN_PICKUP',
       payload: {
-        guardianId: user.uid,
+        guardianId: currentGuardian.id,
         authorizedPickup: updatedPickup
       }
     });

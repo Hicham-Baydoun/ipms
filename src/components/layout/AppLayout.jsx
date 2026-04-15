@@ -8,10 +8,9 @@ import { useAppData } from '../../context/DataContext';
 import { useAuth } from '../../context/AuthContext';
 import { useIdleTimer } from '../../hooks/useIdleTimer';
 import { useToast } from '../../context/ToastContext';
-import { FACILITY_CONFIG } from '../../config/facilityConfig';
 
-const FACILITY_PHONE = FACILITY_CONFIG.emergencyContact;
-const FACILITY_PHONE_TEL = `tel:${FACILITY_CONFIG.emergencyContact.replace(/[^+\d]/g, '')}`;
+const FACILITY_PHONE = '+1-555-9999';
+const FACILITY_PHONE_TEL = 'tel:+15559999';
 
 const OVERTIME_THRESHOLD_MS = 2 * 60 * 60 * 1000; // 2 hours
 
