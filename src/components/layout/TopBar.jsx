@@ -206,7 +206,7 @@ const TopBar = ({ onMenuClick, isSidebarCollapsed }) => {
               </div>
 
               {isSearchOpen && globalSearch.trim() && (
-                <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-2xl shadow-xl border border-gray-100 z-50 animate-fade-in overflow-hidden">
+                <div className="absolute right-0 top-full mt-2 w-[min(20rem,calc(100vw-1rem))] bg-white rounded-2xl shadow-xl border border-gray-100 z-50 animate-fade-in overflow-hidden">
                   {searchResults.length === 0 ? (
                     <div className="px-4 py-6 text-center">
                       <p className="text-sm text-gray-400">No users found for "{globalSearch}"</p>
@@ -277,13 +277,13 @@ const TopBar = ({ onMenuClick, isSidebarCollapsed }) => {
           {canActivateEmergency && (
             <button
               onClick={handleEmergencyToggle}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-all ${
+              className={`flex items-center gap-2 px-3 py-2.5 rounded-lg font-medium text-sm transition-all min-h-[44px] ${
                 emergencyMode
                   ? 'bg-rose-600 text-white animate-pulse-alert'
                   : 'bg-rose-100 text-rose-700 hover:bg-rose-200'
               }`}
             >
-              <Shield className="w-4 h-4" />
+              <Shield className="w-4 h-4 flex-shrink-0" />
               <span className="hidden sm:inline">
                 {emergencyMode ? 'Emergency Active' : 'Emergency'}
               </span>
@@ -294,7 +294,7 @@ const TopBar = ({ onMenuClick, isSidebarCollapsed }) => {
           <div className="relative" ref={notifRef}>
             <button
               onClick={() => setIsNotifOpen((prev) => !prev)}
-              className="relative p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="relative p-2.5 hover:bg-gray-100 rounded-lg transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
               aria-label="Notifications"
             >
               <Bell className="w-5 h-5 text-gray-600" />
@@ -308,7 +308,7 @@ const TopBar = ({ onMenuClick, isSidebarCollapsed }) => {
             </button>
 
             {isNotifOpen && (
-              <div className="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-white rounded-2xl shadow-xl border border-gray-100 z-50 animate-fade-in overflow-hidden">
+              <div className="absolute right-0 top-full mt-2 w-[min(24rem,calc(100vw-1rem))] bg-white rounded-2xl shadow-xl border border-gray-100 z-50 animate-fade-in overflow-hidden">
                 {/* Header */}
                 <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
                   <div className="flex items-center gap-2">

@@ -53,13 +53,13 @@ const EmergencyBanner = () => {
   return (
     <>
       <div className="bg-rose-600 text-white px-4 py-3 animate-pulse-alert">
-        <div className="flex items-center justify-between gap-3 max-w-[1440px] mx-auto">
-          <div className="flex items-center gap-3">
-            <AlertTriangle className="w-5 h-5 flex-shrink-0" />
-            <p className="font-semibold text-sm md:text-base">
-              WARNING: EMERGENCY MODE ACTIVE — Evacuation in progress
+        <div className="flex flex-wrap items-center justify-between gap-2 max-w-[1440px] mx-auto">
+          <div className="flex items-center gap-2 min-w-0">
+            <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+            <p className="font-semibold text-xs sm:text-sm md:text-base">
+              EMERGENCY MODE ACTIVE — Evacuation in progress
               {isAdmin && emergencyActivatedBy && (
-                <span className="ml-2 font-normal opacity-80">
+                <span className="ml-1 font-normal opacity-80 hidden sm:inline">
                   (Activated by {emergencyActivatedBy})
                 </span>
               )}
@@ -68,10 +68,10 @@ const EmergencyBanner = () => {
           {canViewEvacList && (
             <button
               onClick={() => setShowEvacList(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-white/20 hover:bg-white/30 rounded-lg text-sm font-medium whitespace-nowrap transition-colors flex-shrink-0"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-white/20 hover:bg-white/30 rounded-lg text-xs sm:text-sm font-medium whitespace-nowrap transition-colors flex-shrink-0 min-h-[36px]"
             >
-              <Users className="w-4 h-4" />
-              Evacuation List ({totalCheckedIn})
+              <Users className="w-3.5 h-3.5" />
+              List ({totalCheckedIn})
             </button>
           )}
         </div>
@@ -79,8 +79,8 @@ const EmergencyBanner = () => {
 
       {showEvacList && (
         <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4 animate-fade-in">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col animate-modal-in">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-full sm:max-w-2xl max-h-[90vh] flex flex-col animate-modal-in">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-gray-100">
               <div className="flex items-center gap-2">
                 <AlertTriangle className="w-5 h-5 text-rose-600" />
                 <h2 className="text-lg font-bold text-gray-900">Evacuation List</h2>
@@ -96,7 +96,7 @@ const EmergencyBanner = () => {
               </button>
             </div>
 
-            <div className="overflow-y-auto flex-1 p-6 space-y-5">
+            <div className="overflow-y-auto flex-1 p-4 sm:p-6 space-y-5">
               {evacGroups.length === 0 ? (
                 <p className="text-center text-gray-500 py-8">No visitors currently checked in.</p>
               ) : (

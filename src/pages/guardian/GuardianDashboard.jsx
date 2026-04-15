@@ -77,7 +77,7 @@ const GuardianDashboard = () => {
       {/* Page Header */}
       <div>
         <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
             Welcome, {currentGuardian.name.split(' ')[0]}!
           </h1>
           <div className="flex items-center gap-1.5 text-sm text-emerald-600 font-medium">
@@ -112,7 +112,7 @@ const GuardianDashboard = () => {
           return (
             <div 
               key={child.id}
-              className={`rounded-2xl shadow-sm border p-6 animate-fade-slide-up ${
+              className={`rounded-2xl shadow-sm border p-4 sm:p-6 animate-fade-slide-up ${
                 emergencyMode ? 'bg-rose-50/40 border-rose-200' : 'bg-white border-gray-100'
               }`}
               style={{ animationDelay: `${index * 80}ms` }}

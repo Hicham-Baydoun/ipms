@@ -250,7 +250,7 @@ const GuardianRegisterPage = () => {
         </div>
 
         {/* Form */}
-        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6 md:p-8">
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-4 sm:p-6 md:p-8">
           {step === 1 ? (
             <div className="animate-fade-slide-up">
               <h2 className="text-lg font-semibold text-gray-900 mb-6">
@@ -387,7 +387,7 @@ const GuardianRegisterPage = () => {
                       )}
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="col-span-2">
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           Name <span className="text-rose-500">*</span>

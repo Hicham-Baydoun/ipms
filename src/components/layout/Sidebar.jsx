@@ -95,9 +95,9 @@ const Sidebar = ({ isCollapsed, onToggle }) => {
           </div>
         )}
         {!isCollapsed && (
-          <button 
+          <button
             onClick={onToggle}
-            className="p-1.5 hover:bg-white/10 rounded-lg transition-colors lg:hidden"
+            className="p-2.5 hover:bg-white/10 rounded-lg transition-colors lg:hidden min-h-[44px] min-w-[44px] flex items-center justify-center"
           >
             <X className="w-5 h-5" />
           </button>

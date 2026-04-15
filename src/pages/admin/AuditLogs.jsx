@@ -111,26 +111,28 @@ const AuditLogs = () => {
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Audit Logs</h1>
-          <p className="text-gray-500">Track all system activities and changes</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Audit Logs</h1>
+          <p className="text-gray-500 text-sm">Track all system activities and changes</p>
         </div>
         {isAdmin && (
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <button
               onClick={() => setConfirmReset('attendance')}
-              className="flex items-center gap-2 px-3 py-2 text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg hover:bg-amber-100 transition-colors"
+              className="flex items-center gap-2 px-3 py-2.5 text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg hover:bg-amber-100 transition-colors min-h-[44px]"
             >
               <Trash2 className="w-4 h-4" />
-              Clear Attendance Logs
+              <span className="hidden sm:inline">Clear Attendance Logs</span>
+              <span className="sm:hidden">Attendance</span>
             </button>
             <button
               onClick={() => setConfirmReset('audit')}
-              className="flex items-center gap-2 px-3 py-2 text-sm text-rose-700 bg-rose-50 border border-rose-200 rounded-lg hover:bg-rose-100 transition-colors"
+              className="flex items-center gap-2 px-3 py-2.5 text-sm text-rose-700 bg-rose-50 border border-rose-200 rounded-lg hover:bg-rose-100 transition-colors min-h-[44px]"
             >
               <Trash2 className="w-4 h-4" />
-              Clear Audit Logs
+              <span className="hidden sm:inline">Clear Audit Logs</span>
+              <span className="sm:hidden">Audit</span>
             </button>
           </div>
         )}
@@ -186,19 +188,19 @@ const AuditLogs = () => {
           ))}
         </select>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <input
             type="date"
             value={dateRange.from}
             onChange={(e) => setDateRange(prev => ({ ...prev, from: e.target.value }))}
-            className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full sm:w-auto"
           />
-          <span className="text-gray-400">to</span>
+          <span className="text-gray-400 hidden sm:inline">to</span>
           <input
             type="date"
             value={dateRange.to}
             onChange={(e) => setDateRange(prev => ({ ...prev, to: e.target.value }))}
-            className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full sm:w-auto"
           />
         </div>
 

@@ -41,7 +41,7 @@ const StaffDashboard = () => {
       {/* Page Header */}
       <div>
         <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-bold text-gray-900">Staff Dashboard</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Staff Dashboard</h1>
           <div className="flex items-center gap-1.5 text-sm text-emerald-600 font-medium">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-breathe" />
             Live
@@ -62,40 +62,40 @@ const StaffDashboard = () => {
       )}
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <button
           onClick={() => navigate('/staff/check-in')}
           disabled={emergencyMode}
           title={emergencyMode ? 'Check-in is disabled while emergency mode is active.' : ''}
-          className={`p-4 rounded-xl border-2 border-dashed flex flex-col items-center gap-2 transition-colors ${
-            emergencyMode 
-              ? 'border-gray-200 text-gray-400 cursor-not-allowed' 
+          className={`min-h-[80px] py-4 px-3 rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-2 transition-colors ${
+            emergencyMode
+              ? 'border-gray-200 text-gray-400 cursor-not-allowed'
               : 'border-indigo-200 text-indigo-600 hover:bg-indigo-50'
           }`}
         >
           <LogIn className="w-6 h-6" />
-          <span className="font-medium">Check In</span>
+          <span className="font-medium text-sm">Check In</span>
         </button>
         <button
           onClick={() => navigate('/staff/check-out')}
-          className="p-4 rounded-xl border-2 border-dashed border-emerald-200 text-emerald-600 hover:bg-emerald-50 flex flex-col items-center gap-2 transition-colors"
+          className="min-h-[80px] py-4 px-3 rounded-xl border-2 border-dashed border-emerald-200 text-emerald-600 hover:bg-emerald-50 flex flex-col items-center justify-center gap-2 transition-colors"
         >
           <LogOut className="w-6 h-6" />
-          <span className="font-medium">Check Out</span>
+          <span className="font-medium text-sm">Check Out</span>
         </button>
         <button
           onClick={() => navigate('/staff/zones')}
-          className="p-4 rounded-xl border-2 border-dashed border-amber-200 text-amber-600 hover:bg-amber-50 flex flex-col items-center gap-2 transition-colors"
+          className="min-h-[80px] py-4 px-3 rounded-xl border-2 border-dashed border-amber-200 text-amber-600 hover:bg-amber-50 flex flex-col items-center justify-center gap-2 transition-colors"
         >
           <MapPin className="w-6 h-6" />
-          <span className="font-medium">Monitor</span>
+          <span className="font-medium text-sm">Monitor</span>
         </button>
         <button
           onClick={() => navigate('/staff/users')}
-          className="p-4 rounded-xl border-2 border-dashed border-purple-200 text-purple-600 hover:bg-purple-50 flex flex-col items-center gap-2 transition-colors"
+          className="min-h-[80px] py-4 px-3 rounded-xl border-2 border-dashed border-purple-200 text-purple-600 hover:bg-purple-50 flex flex-col items-center justify-center gap-2 transition-colors"
         >
           <Users className="w-6 h-6" />
-          <span className="font-medium">Lookup</span>
+          <span className="font-medium text-sm">Lookup</span>
         </button>
       </div>
 

@@ -67,10 +67,10 @@ const AdminDashboard = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div>
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Admin Dashboard</h1>
             <div className="flex items-center gap-1.5 text-sm text-emerald-600 font-medium">
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-breathe" />
               Live
@@ -132,13 +132,13 @@ const AdminDashboard = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div
-          className={`bg-white rounded-2xl p-6 shadow-sm border border-gray-100 animate-fade-slide-up ${
+          className={`bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-gray-100 animate-fade-slide-up ${
             checkInChartRefreshing ? 'animate-data-refresh' : ''
           }`}
           style={{ animationDelay: '720ms' }}
         >
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Check-ins This Week</h3>
-          <div className="h-64">
+          <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Check-ins This Week</h3>
+          <div className="h-48 sm:h-64">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={checkInChartData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -160,13 +160,13 @@ const AdminDashboard = () => {
         </div>
 
         <div
-          className={`bg-white rounded-2xl p-6 shadow-sm border border-gray-100 animate-fade-slide-up ${
+          className={`bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-gray-100 animate-fade-slide-up ${
             zoneUsageChartRefreshing ? 'animate-data-refresh' : ''
           }`}
           style={{ animationDelay: '800ms' }}
         >
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Zone Usage Distribution</h3>
-          <div className="h-64">
+          <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Zone Usage Distribution</h3>
+          <div className="h-48 sm:h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={zoneUsageData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />

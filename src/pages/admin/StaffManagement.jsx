@@ -112,14 +112,14 @@ const StaffManagement = () => {
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Staff Management</h1>
-          <p className="text-gray-500">Manage staff members and their roles</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Staff Management</h1>
+          <p className="text-gray-500 text-sm">Manage staff members and their roles</p>
         </div>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors"
+          className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors self-start sm:self-auto min-h-[44px]"
         >
           <Plus className="w-5 h-5" />
           Add Staff

@@ -114,7 +114,7 @@ const StaffForm = ({ staff, onSubmit, onCancel }) => {
         )}
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Date of Birth <span className="text-rose-500">*</span>
@@ -150,7 +150,7 @@ const StaffForm = ({ staff, onSubmit, onCancel }) => {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Role <span className="text-rose-500">*</span>
@@ -258,13 +258,13 @@ const StaffForm = ({ staff, onSubmit, onCancel }) => {
         <button
           type="button"
           onClick={onCancel}
-          className="flex-1 px-4 py-2 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors"
+          className="flex-1 px-4 py-3 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors"
         >
           Cancel
         </button>
         <button
           type="submit"
-          className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium transition-colors"
+          className="flex-1 px-4 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium transition-colors"
         >
           {staff ? 'Update Staff' : 'Add Staff'}
         </button>
